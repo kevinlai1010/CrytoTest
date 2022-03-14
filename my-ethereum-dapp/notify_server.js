@@ -78,7 +78,7 @@ mongoose
                             }
                             callback(null, messageBody, callback);
                         },
-                        function MakeMessage(addresses, transactions, callback) {
+                        function Notify(addresses, transactions, callback) {
                             // ... skip code for sending notification.                         
                         },
                     ],
