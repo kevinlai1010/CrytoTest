@@ -7,7 +7,12 @@ var async = require("async");
 // Models
 const BlockchainStatus = require("./models/BlockchainStatusModel");
 const Block = require("./models/BlockModel");
+const Transaction = require("./models/TransactionModel");
 const WalletAddress = require("./models/WalletAddress")
+
+// web3 configuration
+const endpoint = process.env.AMB_HTTP_ENDPOINT;
+const web3 = new Web3(new AWSHttpProvider(endpoint));
 
 var mongoDB =
     "mongodb://" +
@@ -37,10 +42,10 @@ mongoose
             function (StartSync) {
                 async.waterfall(
                     [
-                        function GetWalletAddresses(callback) {                            
+                        function GetWalletAddresses(callback) {
                             WalletAddress.find()
                                 .then((addresses) => {
-                                    if (addresses) {                                        
+                                    if (addresses) {
                                         callback(null, addresses);
                                     } else {
                                         callback(null, null);
@@ -51,22 +56,31 @@ mongoose
                                 });
                         },
                         function GetTransactionsByWalletAddress(addresses, callback) {
-                            // ... code snipet for collecting Transaction Data from DB by WalletAddress
-                            // var = transactions[]                            
-                        },     
-                        function MakeMessage(addresses, transactions, callback) {
-                            // ... code snipet for collecting Transaction Data from DB by WalletAddress
-                            // var = transactions[]       
-                            for (let index = 0; index < addresses.length; index++) {                                
-                                if(transactions[i].length > 0){
-                                    // ... embed msg into messageBody
+                            // ... skip code for collecting Transaction Data from DB by WalletAddress
+                            // transactions 
+                            callback(null, addresses, transactions);
+                        },
+                        function GetFilteredWalletAddresses(addresses, transactions, callback) {
+                            var filteredWalletAddresses = addresses.filter((address) => {
+                                let filteredTransaction = transactions.filter((transaction) => {
+                                    transaction.from == address
+                                })
+                            })
+                            callback(filteredWalletAddresses, callback);
+                        },
+                        function GetBalances(filteredWalletAddresses, callback) {
+                            var balances = [];
+                            for (let index = 0; index < filteredWalletAddresses.length; index++) {
+                                let balance = web3.fromWei(web3.eth.getBalance(filteredWalletAddresses[i]), "ether").toNumber();
+                                if(balance <= 5) {
+                                    messageBody += "Something to Notify for " + filteredWalletAddresses[i].toString();
                                 }
                             }
-                            
-                            if (messageBody.length > 0){
-                                // ... code snipet for notification to Discord/Slack/Telegram through aws chatbot
-                            }
-                        },                                            
+                            callback(null, messageBody, callback);
+                        },
+                        function MakeMessage(addresses, transactions, callback) {
+                            // ... skip code for sending notification.                         
+                        },
                     ],
                     function (err) {
                         if (err) {
